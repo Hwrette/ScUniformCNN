@@ -1,0 +1,30 @@
+# 학습/테스트 이미지 데이터셋
+dataset/
+
+# 불필요한 폴더 (원본 이미지, 증강, 백업 스크립트 등)
+필요없는거/
+
+# 데이터셋 백업 (타임스탬프 폴더)
+dataset_backup_*/
+
+# 이미지 파일
+*.jpg
+*.jpeg
+*.webp
+*.png
+*.gif
+*.bmp
+*.tiff
+*.tif
+*.heic
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# OS / IDE
+.DS_Store
+.vscode/
