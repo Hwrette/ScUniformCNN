@@ -5,6 +5,8 @@
 import torch
 import torch.nn as nn
 
+import matplotlib.pyplot as plt
+
 from torchvision import datasets
 from torchvision import transforms
 
@@ -30,16 +32,54 @@ print("사용 장치:", device)
 # 3. 이미지 전처리
 # ==========================
 
-transform = transforms.Compose([
+def compute_mean_std(loader):
+    """학습 데이터 기준 채널별 평균·표준편차 계산"""
 
-    # 모든 이미지를 128x128로 맞춤
+    mean = torch.zeros(3)
+    std = torch.zeros(3)
+    total = 0
+
+    for images, _ in loader:
+        batch = images.size(0)
+        images = images.view(batch, images.size(1), -1)
+        mean += images.mean(2).sum(dim=0)
+        std += images.std(2).sum(dim=0)
+        total += batch
+
+    mean /= total
+    std /= total
+
+    return mean, std
+
+
+base_transform = transforms.Compose([
     transforms.Resize((128, 128)),
-
-    # 이미지를 텐서로 변환
-    # (H,W,C) -> (C,H,W)
-    # 0~255 -> 0~1
     transforms.ToTensor()
+])
 
+train_for_stats = datasets.ImageFolder(
+    root="dataset/train",
+    transform=base_transform
+)
+
+stats_loader = DataLoader(
+    train_for_stats,
+    batch_size=32,
+    shuffle=False
+)
+
+mean, std = compute_mean_std(stats_loader)
+
+print("정규화 평균:", mean.tolist())
+print("정규화 표준편차:", std.tolist())
+
+transform = transforms.Compose([
+    transforms.Resize((128, 128)),
+    transforms.ToTensor(),
+    transforms.Normalize(
+        mean=mean.tolist(),
+        std=std.tolist()
+    )
 ])
 
 
@@ -48,12 +88,12 @@ transform = transforms.Compose([
 # ==========================
 
 train_dataset = datasets.ImageFolder(
-    root="dataset/학습데이터",
+    root="dataset/train",
     transform=transform
 )
 
 test_dataset = datasets.ImageFolder(
-    root="dataset/테스트데이터",
+    root="dataset/test",
     transform=transform
 )
 
@@ -217,7 +257,8 @@ optimizer = torch.optim.Adam(
 # 10. 학습
 # ==========================
 
-epochs = 10
+# 처음부터 학습하는 CNN은 10 epoch면 부족한 경우가 많음
+epochs = 25
 
 for epoch in range(epochs):
 
@@ -256,13 +297,15 @@ for epoch in range(epochs):
 
 
 # ==========================
-# 11. 테스트
+# 11. 테스트 + 혼동 행렬
 # ==========================
 
 model.eval()
 
 correct = 0
 total = 0
+all_labels = []
+all_preds = []
 
 with torch.no_grad():
 
@@ -273,17 +316,18 @@ with torch.no_grad():
 
         outputs = model(images)
 
-        # 가장 큰 값의 인덱스 선택
         _, predicted = torch.max(
             outputs,
             dim=1
         )
 
         total += labels.size(0)
-
         correct += (
             predicted == labels
         ).sum().item()
+
+        all_labels.extend(labels.cpu().tolist())
+        all_preds.extend(predicted.cpu().tolist())
 
 accuracy = 100 * correct / total
 
@@ -291,6 +335,61 @@ print(
     f"테스트 정확도: "
     f"{accuracy:.2f}%"
 )
+
+num_classes = len(train_dataset.classes)
+confusion = torch.zeros(num_classes, num_classes, dtype=torch.int32)
+
+for true_label, pred_label in zip(all_labels, all_preds):
+    confusion[true_label, pred_label] += 1
+
+print("\n혼동 행렬:")
+print("클래스 순서:", train_dataset.classes)
+print(confusion.numpy())
+
+class_names = train_dataset.classes
+
+fig, ax = plt.subplots(figsize=(6, 5))
+im = ax.imshow(confusion.numpy(), cmap="Blues")
+
+ax.set_xticks(range(num_classes))
+ax.set_yticks(range(num_classes))
+ax.set_xticklabels(class_names)
+ax.set_yticklabels(class_names)
+ax.set_xlabel("예측")
+ax.set_ylabel("실제")
+ax.set_title("테스트 데이터 혼동 행렬")
+
+for i in range(num_classes):
+    for j in range(num_classes):
+        ax.text(
+            j, i,
+            int(confusion[i, j]),
+            ha="center",
+            va="center",
+            color="white" if confusion[i, j] > confusion.max() / 2 else "black"
+        )
+
+plt.colorbar(im, ax=ax)
+plt.tight_layout()
+plt.savefig("confusion_matrix.png", dpi=150)
+plt.show()
+
+print("혼동 행렬 저장: confusion_matrix.png")
+
+print("\n클래스별 성능:")
+for i, name in enumerate(class_names):
+    tp = confusion[i, i].item()
+    fn = confusion[i, :].sum().item() - tp
+    fp = confusion[:, i].sum().item() - tp
+
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+
+    print(
+        f"  {name}: "
+        f"정밀도 {precision:.2%}, "
+        f"재현율 {recall:.2%}"
+    )
 
 
 # ==========================
