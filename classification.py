@@ -68,7 +68,11 @@ model.eval()
 
 transform = transforms.Compose([
     transforms.Resize((128,128)),
-    transforms.ToTensor()
+    transforms.ToTensor(),
+    transforms.Normalize(
+        mean=[0.60837322473526, 0.5809004902839661, 0.5647146105766296],
+        std=[0.2510661482810974, 0.24891965091228485, 0.24691884219646454]
+    )
 ])
 
 
@@ -76,26 +80,37 @@ transform = transforms.Compose([
 # 이미지 읽기
 # ==========================
 
-img = Image.open("test.jpg").convert("RGB")
 
-img = transform(img)
+def predict_image(image_path):
+    image = Image.open(image_path).convert("RGB")
 
-img = img.unsqueeze(0)
+    image = transform(image)
 
-img = img.to(device)
+    image = image.unsqueeze(0)
+
+    image = image.to(device)
 
 
-# ==========================
-# 예측
-# ==========================
+    # ==========================
+    # 예측
+    # ==========================
 
-with torch.no_grad():
+    with torch.no_grad():
 
-    outputs = model(img)
+        outputs = model(image)
 
-    predicted = torch.argmax(outputs, dim=1)
+        predicted = torch.argmax(outputs, dim=1)
 
-    if predicted.item() == 0:
-        print("예측: 교복")
-    else:
-        print("예측: 사복")
+        print("예측 결과:", outputs, ',',predicted.item())
+
+        if predicted.item() == 0:
+            print("예측: 교복")
+        else:
+            print("예측: 사복")
+
+predict_image("IMG_4368.JPG")
+predict_image("image.png")
+predict_image("image.jpg")
+predict_image("img.jpg")
+predict_image("img2.jpg")
+predict_image("img3.jpg")

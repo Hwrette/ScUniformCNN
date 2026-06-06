@@ -12,6 +12,7 @@ from torchvision import transforms
 
 from torch.utils.data import DataLoader
 
+plt.rcParams["font.family"] = "AppleGothic"
 
 # ==========================
 # 2. GPU(MPS) 사용 설정
@@ -336,60 +337,65 @@ print(
     f"{accuracy:.2f}%"
 )
 
-# num_classes = len(train_dataset.classes)
-# confusion = torch.zeros(num_classes, num_classes, dtype=torch.int32)
+num_classes = len(train_dataset.classes)
+confusion = torch.zeros(num_classes, num_classes, dtype=torch.int32)
 
-# for true_label, pred_label in zip(all_labels, all_preds):
-#     confusion[true_label, pred_label] += 1
+for true_label, pred_label in zip(all_labels, all_preds):
+    confusion[true_label, pred_label] += 1
 
-# print("\n혼동 행렬:")
-# print("클래스 순서:", train_dataset.classes)
-# print(confusion.numpy())
+print("\n혼동 행렬:")
+print("클래스 순서:", train_dataset.classes)
+print(confusion.numpy())
 
-# class_names = train_dataset.classes
+class_names = train_dataset.classes
 
-# fig, ax = plt.subplots(figsize=(6, 5))
-# im = ax.imshow(confusion.numpy(), cmap="Blues")
+fig, ax = plt.subplots(figsize=(6, 5))
+im = ax.imshow(confusion.numpy(), cmap="Blues")
 
-# ax.set_xticks(range(num_classes))
-# ax.set_yticks(range(num_classes))
-# ax.set_xticklabels(class_names)
-# ax.set_yticklabels(class_names)
-# ax.set_xlabel("예측")
-# ax.set_ylabel("실제")
-# ax.set_title("테스트 데이터 혼동 행렬")
+ax.set_xticks(range(num_classes))
+ax.set_yticks(range(num_classes))
+ax.set_xticklabels(class_names)
+ax.set_yticklabels(class_names)
+ax.set_xlabel("Predicted")
+ax.set_ylabel("Actual")
+ax.set_title("Confusion Matrix")
 
-# for i in range(num_classes):
-#     for j in range(num_classes):
-#         ax.text(
-#             j, i,
-#             int(confusion[i, j]),
-#             ha="center",
-#             va="center",
-#             color="white" if confusion[i, j] > confusion.max() / 2 else "black"
-#         )
+for i in range(num_classes):
+    for j in range(num_classes):
+        ax.text(
+            j, i,
+            int(confusion[i, j]),
+            ha="center",
+            va="center",
+            color="white" if confusion[i, j] > confusion.max() / 2 else "black"
+        )
 
-# plt.colorbar(im, ax=ax)
-# plt.tight_layout()
-# plt.savefig("confusion_matrix.png", dpi=150)
-# plt.show()
+plt.colorbar(im, ax=ax)
+plt.tight_layout()
+plt.savefig("confusion_matrix.png", dpi=150)
+plt.show()
 
-# print("혼동 행렬 저장: confusion_matrix.png")
+print("혼동 행렬 저장: confusion_matrix.png")
 
-# print("\n클래스별 성능:")
-# for i, name in enumerate(class_names):
-#     tp = confusion[i, i].item()
-#     fn = confusion[i, :].sum().item() - tp
-#     fp = confusion[:, i].sum().item() - tp
+print("\n클래스별 성능:")
+for i, name in enumerate(class_names):
+    tp = confusion[i, i].item()
+    fn = confusion[i, :].sum().item() - tp
+    fp = confusion[:, i].sum().item() - tp
+    tn = confusion.sum().item() - tp - fn - fp
 
-#     recall = tp / (tp + fn) if (tp + fn) > 0 else 0
-#     precision = tp / (tp + fp) if (tp + fp) > 0 else 0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0
 
-#     print(
-#         f"  {name}: "
-#         f"정밀도 {precision:.2%}, "
-#         f"재현율 {recall:.2%}"
-#     )
+    print(
+        f"  {name}: "
+        f"tp {tp}, "
+        f"tn {tn}, "
+        f"fp {fp}, "
+        f"fn {fn}, "
+        f"정밀도 {precision:.2%}, "
+        f"재현율 {recall:.2%}"
+    )
 
 
 # ==========================

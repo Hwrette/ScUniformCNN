@@ -1,0 +1,14 @@
+(base) hwrette@choehyeong-ug-ui-MacBookAir SchoolUniform % /opt/miniconda3/bin/python /Users/hwrett
+e/Desktop/SchoolUniform/classification.py
+예측 결과: tensor([[ 1.0070, -0.5940]], device='mps:0') , 0
+예측: 교복
+예측 결과: tensor([[-3.3106,  3.1680]], device='mps:0') , 1
+예측: 사복
+예측 결과: tensor([[ 4.5198, -4.9181]], device='mps:0') , 0
+예측: 교복
+예측 결과: tensor([[ 9.1945, -8.2845]], device='mps:0') , 0
+예측: 교복
+예측 결과: tensor([[ 7.5173, -5.9046]], device='mps:0') , 0
+예측: 교복
+예측 결과: tensor([[ 9.1687, -6.5526]], device='mps:0') , 0
+예측: 교복
