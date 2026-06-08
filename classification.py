@@ -101,16 +101,18 @@ def predict_image(image_path):
 
         predicted = torch.argmax(outputs, dim=1)
 
-        print("예측 결과:", outputs, ',',predicted.item())
+        print(f"이미지 {image_path}의 예측 결과:", torch.softmax(outputs, dim=1).tolist()[0], ',',predicted.item())
 
         if predicted.item() == 0:
             print("예측: 교복")
         else:
             print("예측: 사복")
 
-predict_image("IMG_4368.JPG")
 predict_image("image.png")
-predict_image("image.jpg")
-predict_image("img.jpg")
-predict_image("img2.jpg")
-predict_image("img3.jpg")
+predict_image("image2.jpg")
+predict_image("image3.jpg")
+predict_image("image4.jpg")
+predict_image("image5.jpg")
+predict_image("고척고 교복.JPG")
+predict_image("동성 교복.jpg")
+predict_image("잠옷.jpg")
