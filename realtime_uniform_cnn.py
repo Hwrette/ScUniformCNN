@@ -113,6 +113,9 @@ def main():
             print("프레임을 읽지 못했습니다.")
             break
 
+        # 셀카처럼 좌우 반전 (거울 모드)
+        frame = cv2.flip(frame, 1)
+
         # 매 프레임마다 추론하면 느려질 수 있으니 N프레임마다 한 번씩만 추론
         if frame_count % 5 == 0:
             last_label, last_probs = predict_frame(frame)
